@@ -1,0 +1,5 @@
+{
+  "name": "Sol Maior Escola de Música - Sistema de Gestão",
+  "description": "A comprehensive management system for music schools, handling academic, financial, and administrative tasks. This frontend is built with React, TypeScript, and Tailwind CSS, designed to connect to a backend API.",
+  "requestFramePermissions": []
+}
