@@ -16,8 +16,10 @@ const adminNav = [
   { name: 'Salas', icon: 'fa-door-open' },
   { name: 'Agenda', icon: 'fa-calendar-alt' },
   { name: 'Financeiro', icon: 'fa-dollar-sign' },
+  { name: 'Solicitações', icon: 'fa-inbox' },
   { name: 'Eventos', icon: 'fa-star' },
   { name: 'Certificados', icon: 'fa-award' },
+  { name: 'Conteúdo Público', icon: 'fa-file-image' },
 ];
 
 const secretaryNav = [
@@ -25,6 +27,7 @@ const secretaryNav = [
   { name: 'Matrículas', icon: 'fa-file-signature' },
   { name: 'Agenda', icon: 'fa-calendar-alt' },
   { name: 'Pagamentos', icon: 'fa-cash-register' },
+  { name: 'Solicitações', icon: 'fa-inbox' },
   { name: 'Eventos', icon: 'fa-star' },
   { name: 'Salas', icon: 'fa-door-open' },
   { name: 'Documentos', icon: 'fa-folder-open' },

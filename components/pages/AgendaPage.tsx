@@ -1,3 +1,4 @@
+
 import React, { useEffect, useRef, useState } from 'react';
 import { Lesson, Role, User, Room } from '../../types';
 import { getCourseById, getUserById, MOCK_USERS, MOCK_COURSES } from '../../constants';
@@ -20,6 +21,7 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
         courseId: '', studentId: '', teacherId: '', date: '', startTime: '', endTime: '', room: '', notes: '', studentEmail: ''
     });
     const [emailError, setEmailError] = useState('');
+    const [timeError, setTimeError] = useState('');
     const [availableRooms, setAvailableRooms] = useState<Room[]>([]);
 
     useEffect(() => {
@@ -48,8 +50,17 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
         } else {
              setFormData({ courseId: '', studentId: '', teacherId: '', date: '', startTime: '', endTime: '', room: '', notes: '', studentEmail: '' });
         }
-        setEmailError(''); // Reset error on open/close
+        setEmailError('');
+        setTimeError('');
     }, [lessonToEdit, isOpen]);
+    
+    useEffect(() => {
+        if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
+            setTimeError('A hora de fim deve ser posterior à hora de início.');
+        } else {
+            setTimeError('');
+        }
+    }, [formData.startTime, formData.endTime]);
 
     const teachers = MOCK_USERS.filter(user => user.role === Role.Teacher);
     const students = MOCK_USERS.filter(user => user.role === Role.Student);
@@ -59,7 +70,6 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
     const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newEmail = e.target.value;
         setFormData(prev => ({...prev, studentEmail: newEmail}));
-        // If there was an error, check if the new value is valid to clear the error immediately
         if (emailError && validateEmail(newEmail)) {
             setEmailError('');
         }
@@ -67,7 +77,6 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
 
     const handleEmailBlur = (e: React.FocusEvent<HTMLInputElement>) => {
         const email = e.target.value;
-        // Set error only if the field is not empty and is invalid
         if (email && !validateEmail(email)) {
             setEmailError('Por favor, insira um e-mail válido.');
         } else {
@@ -77,12 +86,17 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
 
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
-        // Final validation check on submit is still a good practice
-        if (formData.studentEmail && !validateEmail(formData.studentEmail)) {
-            setEmailError('Por favor, insira um e-mail válido.');
+        if ((formData.studentEmail && !validateEmail(formData.studentEmail)) || (formData.startTime && formData.endTime && formData.endTime <= formData.startTime)) {
+            if (formData.studentEmail && !validateEmail(formData.studentEmail)) {
+                setEmailError('Por favor, insira um e-mail válido.');
+            }
+            if (formData.startTime && formData.endTime && formData.endTime <= formData.startTime) {
+                setTimeError('A hora de fim deve ser posterior à hora de início.');
+            }
             return;
         }
         setEmailError('');
+        setTimeError('');
         
         const lessonData = {
             ...lessonToEdit,
@@ -142,20 +156,21 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
                     </div>
                     <div>
                         <label htmlFor="start-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
-                        <input type="time" id="start-time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="time" id="start-time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
                     </div>
                     <div>
                         <label htmlFor="end-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fim</label>
-                        <input type="time" id="end-time" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="time" id="end-time" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
                     </div>
                 </div>
+                {timeError && <p className="text-sm text-red-600 dark:text-red-400 -mt-2">{timeError}</p>}
                 <div>
                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Observações</label>
                     <textarea id="notes" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Notas sobre o plano de aula, progresso do aluno, etc."></textarea>
                 </div>
                 <div className="flex justify-end pt-4">
                     <button type="button" onClick={onClose} disabled={isSaving} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 disabled:opacity-50">Cancelar</button>
-                    <button type="submit" disabled={isSaving} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
+                    <button type="submit" disabled={isSaving || !!emailError || !!timeError} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center">
                         {isSaving && <i className="fas fa-spinner fa-spin mr-2"></i>}
                         {isSaving ? (lessonToEdit ? 'Salvando...' : 'Agendando...') : (lessonToEdit ? 'Salvar Alterações' : 'Agendar Aula')}
                     </button>
@@ -199,7 +214,6 @@ const AgendaPage: React.FC<{ user: User }> = ({ user }) => {
     }, []);
     
     useEffect(() => {
-        // Set initial teacher filter for teacher users, but allow them to change it
         if (user.role === Role.Teacher) {
             setSelectedTeacher(String(user.id));
         }

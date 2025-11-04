@@ -17,6 +17,8 @@ import CertificadosPage from '../pages/CertificadosPage';
 import EventosPage from '../pages/EventosPage';
 import ProfilePage from '../pages/ProfilePage';
 import SalasPage from '../pages/SalasPage';
+import GerenciarLandingPage from '../pages/GerenciarLandingPage';
+import TrialRequestsPage from '../pages/TrialRequestsPage';
 
 interface DashboardLayoutProps {
   user: User;
@@ -63,6 +65,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout, setCu
         return <ProfilePage user={user} onUserUpdate={setCurrentUser} />;
       case 'Salas':
         return <SalasPage />;
+      case 'Conteúdo Público':
+        return <GerenciarLandingPage />;
+      case 'Solicitações':
+        return <TrialRequestsPage />;
       default:
         return <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-gray-900 dark:text-white">
             <h2 className="text-2xl font-bold mb-4">{activePage}</h2>

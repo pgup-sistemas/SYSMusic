@@ -1,4 +1,4 @@
-import { Role, User, Course, Lesson, Payment, StudentData, AvailabilitySlot, Material, Certificate, Event, Notification, Room } from './types';
+import { Role, User, Course, Lesson, Payment, StudentData, AvailabilitySlot, Material, Certificate, Event, Notification, Room, LandingPageContent, TrialLessonRequest } from './types';
 
 export const MOCK_USERS: User[] = [
   { id: 1, name: 'Diretor Silva', email: 'diretor@music.com', role: Role.Admin, avatarUrl: 'https://picsum.photos/seed/admin/100/100', password: 'password', isActive: true },
@@ -54,11 +54,11 @@ export let MOCK_EVENTS: Event[] = [
 ];
 
 export let MOCK_NOTIFICATIONS: Notification[] = [
-    { id: 1, userId: 5, message: 'Sua aula de Violão foi reagendada para amanhã às 15:00.', isRead: false, date: new Date() },
-    { id: 2, userId: 5, message: 'O pagamento da sua mensalidade vence em 3 dias.', isRead: false, date: new Date(new Date().setDate(new Date().getDate() - 1)) },
-    { id: 3, userId: 5, message: 'Novo material disponível no curso de Violão Clássico.', isRead: true, date: new Date(new Date().setDate(new Date().getDate() - 2)) },
-    { id: 4, userId: 3, message: 'A aula do aluno João Pereira foi cancelada.', isRead: false, date: new Date() },
-    { id: 5, userId: 1, message: 'Relatório financeiro de Julho está pronto.', isRead: true, date: new Date(new Date().setDate(new Date().getDate() - 5)) },
+    { id: 1, userId: 5, message: 'Sua aula de Violão foi reagendada para amanhã às 15:00.', isRead: false, date: new Date(), link: 'Minha Agenda' },
+    { id: 2, userId: 5, message: 'O pagamento da sua mensalidade vence em 3 dias.', isRead: false, date: new Date(new Date().setDate(new Date().getDate() - 1)), link: 'Pagamentos' },
+    { id: 3, userId: 5, message: 'Novo material disponível no curso de Violão Clássico.', isRead: true, date: new Date(new Date().setDate(new Date().getDate() - 2)), link: 'Materiais' },
+    { id: 4, userId: 3, message: 'A aula do aluno João Pereira foi cancelada.', isRead: false, date: new Date(), link: 'Minhas Aulas' },
+    { id: 5, userId: 1, message: 'Relatório financeiro de Julho está pronto.', isRead: true, date: new Date(new Date().setDate(new Date().getDate() - 5)), link: 'Financeiro' },
 ];
 
 export let MOCK_ROOMS: Room[] = [
@@ -67,6 +67,20 @@ export let MOCK_ROOMS: Room[] = [
     { id: 3, name: 'Sala C' },
     { id: 4, name: 'Auditório' },
     { id: 5, name: 'Estúdio 1' },
+];
+
+export let MOCK_LANDING_PAGE_CONTENT: LandingPageContent = {
+  heroTitle: "Desperte a Música em Você",
+  heroSubtitle: "Aprenda com professores apaixonados em um ambiente inspirador. Oferecemos cursos de diversos instrumentos para todas as idades.",
+  announcements: [
+    { id: 1, title: "Matrículas Abertas para o Segundo Semestre!", content: "Garanta sua vaga nos nossos cursos de Violão, Piano, Canto e Teoria Musical. As vagas são limitadas!", date: new Date(new Date().setDate(new Date().getDate() - 1)) },
+    { id: 2, title: "Recital de Fim de Ano", content: "Nosso tradicional recital de fim de ano acontecerá no dia 15 de Dezembro. Venha prestigiar nossos talentosos alunos!", date: new Date(new Date().setDate(new Date().getDate() - 5)) },
+  ]
+};
+
+export let MOCK_TRIAL_REQUESTS: TrialLessonRequest[] = [
+  { id: 1, name: 'Carlos Andrade', email: 'carlos.a@example.com', instrument: 'Violão', phone: '11 98765-4321', requestDate: new Date(new Date().setDate(new Date().getDate() - 1)), status: 'Pendente' },
+  { id: 2, name: 'Bruna Lima', email: 'bruna.l@example.com', instrument: 'Piano', requestDate: new Date(new Date().setDate(new Date().getDate() - 2)), status: 'Contatado' },
 ];
 
 

@@ -1,7 +1,7 @@
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Role } from '../../types';
 import { MOCK_PAYMENTS, MOCK_USERS, MOCK_LESSONS } from '../../constants';
+import * as trialRequestsApi from '../../api/trialRequests';
 import DashboardCard from '../shared/DashboardCard';
 import UpcomingLessons from '../shared/UpcomingLessons';
 
@@ -36,6 +36,15 @@ const PendingPayments: React.FC = () => {
 
 const SecretaryDashboard: React.FC<{user: User}> = ({ user }) => {
     const pendingPaymentsCount = MOCK_PAYMENTS.filter(p => p.status !== 'Pago').length;
+    const [pendingRequests, setPendingRequests] = useState(0);
+
+    useEffect(() => {
+        const fetchPendingCount = async () => {
+            const requests = await trialRequestsApi.getRequests();
+            setPendingRequests(requests.filter(r => r.status === 'Pendente').length);
+        };
+        fetchPendingCount();
+    }, []);
 
     return (
     <div className="space-y-8">
@@ -47,7 +56,7 @@ const SecretaryDashboard: React.FC<{user: User}> = ({ user }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <DashboardCard icon="fa-file-signature" title="Novas Matrículas" value="3" color="bg-blue-500" />
         <DashboardCard icon="fa-receipt" title="Pagamentos Pendentes" value={String(pendingPaymentsCount)} color="bg-yellow-500" />
-        <DashboardCard icon="fa-calendar-alt" title="Aulas Experimentais" value="5" color="bg-green-500" />
+        <DashboardCard icon="fa-calendar-alt" title="Aulas Experimentais" value={String(pendingRequests)} color="bg-green-500" />
         <DashboardCard icon="fa-exclamation-triangle" title="Conflitos de Agenda" value="1" color="bg-red-500" />
       </div>
 

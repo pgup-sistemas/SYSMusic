@@ -18,7 +18,3 @@ View your app in AI Studio: https://ai.studio/apps/drive/1GF1gssc19YAD0-bIonbabf
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
-
-Para acessar o sistema como administrador, você pode usar as seguintes credenciais que estão em nossa base de dados simulada:
-Usuário (E-mail): diretor@music.com
-Senha: `password

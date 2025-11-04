@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import LandingPage from '../pages/LandingPage';
 import ValidateCertificatePage from '../pages/ValidateCertificatePage';
+import PublicCursosPage from '../pages/PublicCursosPage';
+import PublicEventosPage from '../pages/PublicEventosPage';
 
 interface PublicLayoutProps {
     onGoToLogin: () => void;
@@ -15,13 +17,15 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ onGoToLogin }) => {
     const renderPage = () => {
         switch(activePage) {
             case 'Home':
+                return <LandingPage onGoToCursos={() => setActivePage('Cursos')} onGoToTrial={() => {}} />;
             case 'Cursos':
+                return <PublicCursosPage />;
             case 'Eventos':
-                return <LandingPage />;
+                return <PublicEventosPage />;
             case 'Validar Certificado':
                 return <ValidateCertificatePage />;
             default:
-                return <LandingPage />;
+                return <LandingPage onGoToCursos={() => setActivePage('Cursos')} onGoToTrial={() => {}} />;
         }
     };
 
@@ -37,7 +41,7 @@ const PublicLayout: React.FC<PublicLayoutProps> = ({ onGoToLogin }) => {
                         </div>
                         <div className="hidden md:flex items-center space-x-4">
                             {(['Home', 'Cursos', 'Eventos', 'Validar Certificado'] as PublicPage[]).map(page => (
-                                <button key={page} onClick={() => setActivePage(page)} className={`px-3 py-2 rounded-md text-sm font-medium ${activePage === page ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
+                                <button key={page} onClick={() => setActivePage(page)} className={`px-3 py-2 rounded-md text-sm font-medium ${activePage === page ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'}`}>
                                     {page}
                                 </button>
                             ))}

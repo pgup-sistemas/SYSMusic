@@ -1,27 +1,46 @@
 import React, { useState, useEffect } from 'react';
-import { Course, Event } from '../../types';
+import { Course, Event, LandingPageContent } from '../../types';
 import { MOCK_COURSES } from '../../constants';
 import * as eventsApi from '../../api/events';
+import * as landingPageApi from '../../api/landingPage';
 import TrialLessonModal from '../shared/TrialLessonModal';
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+    onGoToCursos: () => void;
+    onGoToTrial: () => void;
+}
+
+
+const LandingPage: React.FC<LandingPageProps> = ({ onGoToCursos, onGoToTrial }) => {
     const [events, setEvents] = useState<Event[]>([]);
-    const [isLoadingEvents, setIsLoadingEvents] = useState(true);
+    const [content, setContent] = useState<LandingPageContent | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [isTrialModalOpen, setIsTrialModalOpen] = useState(false);
 
     useEffect(() => {
-        const fetchEvents = async () => {
-            setIsLoadingEvents(true);
-            const allEvents = await eventsApi.getEvents();
-            const upcoming = allEvents
+        const fetchData = async () => {
+            setIsLoading(true);
+            const [fetchedContent, allEvents] = await Promise.all([
+                landingPageApi.getContent(),
+                eventsApi.getEvents()
+            ]);
+            
+            setContent(fetchedContent);
+
+            const upcomingEvents = allEvents
                 .filter(e => e.date >= new Date() && e.status === 'Agendado')
                 .sort((a,b) => a.date.getTime() - b.date.getTime())
                 .slice(0, 3); // Show top 3 upcoming events
-            setEvents(upcoming);
-            setIsLoadingEvents(false);
+            setEvents(upcomingEvents);
+            
+            setIsLoading(false);
         };
-        fetchEvents();
+        fetchData();
     }, []);
+
+    if (isLoading || !content) {
+        return <div className="flex justify-center items-center h-screen"><i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i></div>
+    }
 
     return (
         <>
@@ -29,10 +48,10 @@ const LandingPage: React.FC = () => {
             <section className="bg-indigo-50 dark:bg-gray-800/50">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
                     <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 dark:text-white">
-                        Desperte a Música em Você
+                        {content.heroTitle}
                     </h1>
                     <p className="mt-4 max-w-2xl mx-auto text-lg text-gray-600 dark:text-gray-300">
-                        Aprenda com professores apaixonados em um ambiente inspirador. Oferecemos cursos de diversos instrumentos para todas as idades.
+                        {content.heroSubtitle}
                     </p>
                     <button 
                         onClick={() => setIsTrialModalOpen(true)}
@@ -42,9 +61,27 @@ const LandingPage: React.FC = () => {
                     </button>
                 </div>
             </section>
+            
+            {/* Announcements Section */}
+            {content.announcements.length > 0 && (
+                <section id="anuncios" className="py-16">
+                    <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+                        <h2 className="text-3xl font-bold text-center mb-10">Notícias e Anúncios</h2>
+                        <div className="max-w-3xl mx-auto space-y-4">
+                        {content.announcements.map(ann => (
+                            <div key={ann.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+                                <h3 className="font-bold text-xl text-indigo-600 dark:text-indigo-400">{ann.title}</h3>
+                                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{new Date(ann.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                                <p className="text-gray-700 dark:text-gray-300">{ann.content}</p>
+                            </div>
+                        ))}
+                        </div>
+                    </div>
+                </section>
+            )}
 
             {/* Courses Section */}
-            <section id="cursos" className="py-16">
+            <section id="cursos" className="py-16 bg-gray-50 dark:bg-gray-800/50">
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-bold text-center mb-10">Nossos Cursos</h2>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -64,12 +101,10 @@ const LandingPage: React.FC = () => {
             </section>
 
             {/* Events Section */}
-            <section id="eventos" className="bg-gray-50 dark:bg-gray-800/50 py-16">
+            <section id="eventos" className="py-16">
                  <div className="container mx-auto px-4 sm:px-6 lg:px-8">
                     <h2 className="text-3xl font-bold text-center mb-10">Próximos Eventos</h2>
-                    {isLoadingEvents ? (
-                        <div className="text-center"><i className="fas fa-spinner fa-spin text-2xl"></i></div>
-                    ) : events.length > 0 ? (
+                    {events.length > 0 ? (
                         <div className="space-y-6 max-w-3xl mx-auto">
                             {events.map(event => (
                                 <div key={event.id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 flex items-center space-x-6">

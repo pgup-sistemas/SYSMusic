@@ -103,3 +103,26 @@ export interface Room {
   id: number;
   name: string;
 }
+
+export interface Announcement {
+  id: number;
+  title: string;
+  content: string;
+  date: Date;
+}
+
+export interface LandingPageContent {
+  heroTitle: string;
+  heroSubtitle: string;
+  announcements: Announcement[];
+}
+
+export interface TrialLessonRequest {
+  id: number;
+  name: string;
+  email: string;
+  instrument: string;
+  phone?: string;
+  requestDate: Date;
+  status: 'Pendente' | 'Contatado' | 'Agendado' | 'Cancelado';
+}
