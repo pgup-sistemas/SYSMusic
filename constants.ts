@@ -1,6 +1,6 @@
-import { Role, User, Course, Lesson, Payment, StudentData, AvailabilitySlot, Material, Certificate, Event, Notification, Room, LandingPageContent, TrialLessonRequest } from './types';
+import { Role, User, Course, Lesson, Payment, StudentData, AvailabilitySlot, Material, Certificate, Event, Notification, Room, LandingPageContent, TrialLessonRequest, AttendanceRecord } from './types';
 
-export const MOCK_USERS: User[] = [
+export let MOCK_USERS: User[] = [
   { id: 1, name: 'Diretor Silva', email: 'diretor@music.com', role: Role.Admin, avatarUrl: 'https://picsum.photos/seed/admin/100/100', password: 'password', isActive: true },
   { id: 2, name: 'Ana Costa', email: 'secretaria@music.com', role: Role.Secretary, avatarUrl: 'https://picsum.photos/seed/secretary/100/100', password: 'password', isActive: true },
   { id: 3, name: 'Prof. Carlos', email: 'carlos@music.com', role: Role.Teacher, avatarUrl: 'https://picsum.photos/seed/teacher1/100/100', password: 'password', isActive: true },
@@ -27,18 +27,18 @@ export let MOCK_LESSONS: Lesson[] = [
 
 
 export let MOCK_PAYMENTS: Payment[] = [
-    { id: 1, studentId: 5, amount: 250.00, dueDate: new Date('2024-08-10'), status: 'Pago', courseName: 'Violão Clássico' },
+    { id: 1, studentId: 5, amount: 250.00, dueDate: new Date('2024-08-10'), status: 'Pago', courseName: 'Violão Clássico', paymentMethod: 'Manual', paidDate: new Date('2024-08-08') },
     { id: 2, studentId: 6, amount: 300.00, dueDate: new Date('2024-08-10'), status: 'Pendente', courseName: 'Piano Popular' },
     { id: 3, studentId: 7, amount: 150.00, dueDate: new Date('2024-07-10'), status: 'Atrasado', courseName: 'Teoria Musical' },
     { id: 4, studentId: 5, amount: 250.00, dueDate: new Date('2024-09-10'), status: 'Pendente', courseName: 'Violão Clássico' },
-    { id: 5, studentId: 6, amount: 120.00, dueDate: new Date('2024-08-10'), status: 'Pago', courseName: 'Canto Coral' },
+    { id: 5, studentId: 6, amount: 120.00, dueDate: new Date('2024-08-10'), status: 'Pago', courseName: 'Canto Coral', paymentMethod: 'Cartão de Crédito', paidDate: new Date('2024-08-09') },
 ];
 
 
-export const MOCK_STUDENTS_DATA: StudentData[] = [
-    { ...(MOCK_USERS.find(u => u.id === 5) as User), enrollmentDate: '2023-02-15', activeCourses: 2 },
-    { ...(MOCK_USERS.find(u => u.id === 6) as User), enrollmentDate: '2022-09-01', activeCourses: 1 },
-    { ...(MOCK_USERS.find(u => u.id === 7) as User), enrollmentDate: '2024-01-20', activeCourses: 1 },
+export let MOCK_STUDENTS_DATA: StudentData[] = [
+    { ...(MOCK_USERS.find(u => u.id === 5) as User), enrollmentDate: '2023-02-15', activeCourses: 2, dateOfBirth: new Date('2005-05-20') },
+    { ...(MOCK_USERS.find(u => u.id === 6) as User), enrollmentDate: '2022-09-01', activeCourses: 1, dateOfBirth: new Date('2014-11-10') },
+    { ...(MOCK_USERS.find(u => u.id === 7) as User), enrollmentDate: '2024-01-20', activeCourses: 1, dateOfBirth: new Date('1999-03-03') },
 ]
 
 export const MOCK_CERTIFICATES: Certificate[] = [
@@ -83,9 +83,22 @@ export let MOCK_TRIAL_REQUESTS: TrialLessonRequest[] = [
   { id: 2, name: 'Bruna Lima', email: 'bruna.l@example.com', instrument: 'Piano', requestDate: new Date(new Date().setDate(new Date().getDate() - 2)), status: 'Contatado' },
 ];
 
+export let MOCK_ATTENDANCE_RECORDS: AttendanceRecord[] = [
+    { id: 1, courseId: 1, studentId: 5, date: new Date(new Date().setDate(new Date().getDate() - 1)), status: 'Presente', notes: 'Chegou 5 minutos atrasado.' },
+    { id: 2, courseId: 2, studentId: 6, date: new Date(new Date().setDate(new Date().getDate() - 1)), status: 'Presente' },
+    { id: 3, courseId: 1, studentId: 5, date: new Date(new Date().setDate(new Date().getDate() - 8)), status: 'Ausente', notes: 'Atestado médico.' },
+];
+
 
 export const getCourseById = (id: number) => MOCK_COURSES.find(c => c.id === id);
 export const getUserById = (id: number) => MOCK_USERS.find(u => u.id === id);
+export const getStudentsForCourse = (courseId: number): User[] => {
+    const studentIds = MOCK_LESSONS
+        .filter(lesson => lesson.courseId === courseId)
+        .map(lesson => lesson.studentId);
+    const uniqueStudentIds = [...new Set(studentIds)];
+    return MOCK_USERS.filter(user => uniqueStudentIds.includes(user.id));
+};
 
 export const getStudentCountForCourse = (courseId: number) => {
     const studentIds = MOCK_LESSONS

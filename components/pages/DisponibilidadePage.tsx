@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { User, AvailabilitySlot } from '../../types';
 import { MOCK_TEACHER_AVAILABILITY } from '../../constants';
@@ -24,7 +25,8 @@ const DisponibilidadePage: React.FC<{ user: User }> = ({ user }) => {
     };
     
     const daysOfWeek = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-    const timeSlots = [...new Set(availability.map(slot => slot.time))].sort();
+    // FIX: Explicitly type `a` and `b` in the sort callback to resolve type inference issues.
+    const timeSlots: string[] = [...new Set(availability.map(slot => slot.time))].sort((a: string, b: string) => a.localeCompare(b));
 
     return (
         <div className="space-y-8">

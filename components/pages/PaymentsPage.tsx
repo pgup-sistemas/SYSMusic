@@ -3,10 +3,17 @@ import { User, Role, Payment } from '../../types';
 import { MOCK_USERS, getUserById } from '../../constants';
 import * as paymentsApi from '../../api/payments';
 import DashboardCard from '../shared/DashboardCard';
+import Pagination from '../shared/Pagination';
+import PaymentModal from '../shared/PaymentModal';
+
+declare const jspdf: any;
+declare const autoTable: any;
 
 interface PaymentsPageProps {
     user: User;
 }
+
+const ITEMS_PER_PAGE = 10;
 
 const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
     const [payments, setPayments] = useState<Payment[]>([]);
@@ -15,6 +22,10 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
     const [statusFilter, setStatusFilter] = useState('all');
     const [studentFilter, setStudentFilter] = useState('all');
     const [dateFilter, setDateFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+    const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
+
 
     const fetchPayments = async () => {
         setIsLoading(true);
@@ -31,9 +42,24 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
         fetchPayments();
     }, [user]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter, studentFilter, dateFilter]);
+
     const handleMarkAsPaid = async (paymentId: number) => {
-        await paymentsApi.updatePaymentStatus(paymentId, 'Pago');
+        await paymentsApi.updatePaymentStatus(paymentId, 'Pago', 'Manual');
         fetchPayments(); // Refetch to update UI
+    };
+
+    const handleOpenPaymentModal = (payment: Payment) => {
+        setSelectedPayment(payment);
+        setIsPaymentModalOpen(true);
+    };
+    
+    const handlePaymentSuccess = () => {
+        setIsPaymentModalOpen(false);
+        setSelectedPayment(null);
+        fetchPayments();
     };
 
     const handleGeneratePayments = async () => {
@@ -77,6 +103,82 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
             }
         });
     }, [payments, statusFilter, studentFilter, dateFilter]);
+    
+    const currentPayments = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredPayments.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredPayments, currentPage]);
+
+    const handleExportCSV = () => {
+        if (filteredPayments.length === 0) {
+            alert("Não há dados para exportar com os filtros selecionados.");
+            return;
+        }
+
+        const headers = ["ID", "Aluno", "Curso", "Valor", "Vencimento", "Status", "Data Pagamento", "Método"];
+        const csvRows = [headers.join(',')];
+
+        filteredPayments.forEach(payment => {
+            const student = getUserById(payment.studentId);
+            const row = [
+                payment.id,
+                `"${student?.name || 'N/A'}"`,
+                `"${payment.courseName}"`,
+                payment.amount.toFixed(2).replace('.',','),
+                payment.dueDate.toLocaleDateString('pt-BR'),
+                payment.status,
+                payment.paidDate ? payment.paidDate.toLocaleDateString('pt-BR') : 'N/A',
+                payment.paymentMethod || 'N/A'
+            ].join(',');
+            csvRows.push(row);
+        });
+
+        const csvString = csvRows.join('\n');
+        const blob = new Blob([`\uFEFF${csvString}`], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement("a");
+        const url = URL.createObjectURL(blob);
+        link.setAttribute("href", url);
+        link.setAttribute("download", "relatorio_pagamentos.csv");
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const handleExportPDF = () => {
+        if (filteredPayments.length === 0) {
+            alert("Não há dados para exportar com os filtros selecionados.");
+            return;
+        }
+
+        const doc = new jspdf.jsPDF();
+        const tableColumn = ["ID", "Aluno", "Curso", "Valor (R$)", "Vencimento", "Status", "Data Pag.", "Método"];
+        const tableRows: any[][] = [];
+
+        filteredPayments.forEach(payment => {
+            const student = getUserById(payment.studentId);
+            const paymentData = [
+                payment.id,
+                student?.name || 'N/A',
+                payment.courseName,
+                payment.amount.toFixed(2),
+                payment.dueDate.toLocaleDateString('pt-BR'),
+                payment.status,
+                payment.paidDate ? payment.paidDate.toLocaleDateString('pt-BR') : 'N/A',
+                payment.paymentMethod || 'N/A'
+            ];
+            tableRows.push(paymentData);
+        });
+        
+        doc.text("Relatório de Pagamentos", 14, 15);
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 20,
+        });
+        doc.save("relatorio_pagamentos.pdf");
+    };
+
 
     const totalBilled = filteredPayments.reduce((acc, p) => acc + p.amount, 0);
     const totalPaid = filteredPayments.filter(p => p.status === 'Pago').reduce((acc, p) => acc + p.amount, 0);
@@ -102,9 +204,9 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
         <div className="space-y-8">
             <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão Financeira</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">{user.role === Role.Student ? 'Meus Pagamentos' : 'Relatório Financeiro'}</h1>
                     <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">
-                        {user.role === Role.Student ? `Olá, ${user.name}! Aqui está seu histórico de pagamentos.` : 'Visão geral dos pagamentos da escola.'}
+                        {user.role === Role.Student ? `Olá, ${user.name}! Aqui está seu histórico de pagamentos.` : 'Visão detalhada de todas as transações da escola.'}
                     </p>
                 </div>
                  {(user.role === Role.Admin || user.role === Role.Secretary) && (
@@ -133,7 +235,7 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                             <label htmlFor="student-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Aluno</label>
                             <select
                             id="student-filter"
-                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                            className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                             value={studentFilter}
                             onChange={e => setStudentFilter(e.target.value)}
                             >
@@ -146,7 +248,7 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                         <label htmlFor="date-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Vencimento</label>
                         <select
                         id="date-filter"
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                         value={dateFilter}
                         onChange={e => setDateFilter(e.target.value)}
                         >
@@ -161,13 +263,27 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                         <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                         <select
                         id="status-filter"
-                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                         value={statusFilter}
                         onChange={e => setStatusFilter(e.target.value)}
                         >
                         <option value="all">Todos os Status</option>
                         {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
+                    </div>
+                    <div className="flex gap-2">
+                        <button
+                            onClick={handleExportCSV}
+                            className="px-4 py-2 bg-gray-200 text-gray-800 dark:bg-gray-600 dark:text-gray-200 font-semibold rounded-lg shadow-sm hover:bg-gray-300 dark:hover:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-400 flex items-center text-sm"
+                        >
+                            <i className="fas fa-file-csv mr-2"></i>Exportar CSV
+                        </button>
+                        <button
+                            onClick={handleExportPDF}
+                            className="px-4 py-2 bg-red-500 text-white font-semibold rounded-lg shadow-sm hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-400 flex items-center text-sm"
+                        >
+                            <i className="fas fa-file-pdf mr-2"></i>Exportar PDF
+                        </button>
                     </div>
                 </div>
 
@@ -176,15 +292,17 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
                                 {user.role !== Role.Student && <th scope="col" className="px-6 py-3">Aluno</th>}
-                                <th scope="col" className="px-6 py-3">Curso</th>
+                                <th scope="col" className="px-6 py-3">Curso/Descrição</th>
                                 <th scope="col" className="px-6 py-3">Valor</th>
                                 <th scope="col" className="px-6 py-3">Vencimento</th>
                                 <th scope="col" className="px-6 py-3">Status</th>
+                                {user.role !== Role.Student && <th scope="col" className="px-6 py-3">Data Pag.</th> }
+                                {user.role !== Role.Student && <th scope="col" className="px-6 py-3">Método</th> }
                                 <th scope="col" className="px-6 py-3">Ações</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredPayments.map(payment => {
+                            {currentPayments.map(payment => {
                                 const student = getUserById(payment.studentId);
                                 return (
                                 <tr key={payment.id} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -202,18 +320,17 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                                             {payment.status}
                                         </span>
                                     </td>
+                                     {user.role !== Role.Student && <td className="px-6 py-4">{payment.paidDate ? payment.paidDate.toLocaleDateString('pt-BR') : '—'}</td> }
+                                     {user.role !== Role.Student && <td className="px-6 py-4">{payment.paymentMethod || '—'}</td> }
                                     <td className="px-6 py-4 flex items-center space-x-2">
-                                        <button className="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-200" title="Ver Detalhes">
-                                            <i className="fas fa-eye"></i>
-                                        </button>
                                         {(user.role === Role.Admin || user.role === Role.Secretary) && payment.status !== 'Pago' && (
-                                            <button onClick={() => handleMarkAsPaid(payment.id)} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-200" title="Marcar como Pago">
+                                            <button onClick={() => handleMarkAsPaid(payment.id)} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-200" title="Marcar como Pago (Manual)">
                                                 <i className="fas fa-check-circle"></i>
                                             </button>
                                         )}
                                         {user.role === Role.Student && payment.status !== 'Pago' && (
-                                             <button onClick={() => handleMarkAsPaid(payment.id)} className="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-200 font-semibold text-xs py-1 px-2 rounded-md bg-green-100 dark:bg-green-900/50">
-                                                Pagar
+                                             <button onClick={() => handleOpenPaymentModal(payment)} className="text-white font-semibold text-xs py-1 px-3 rounded-md bg-green-600 hover:bg-green-700 dark:bg-green-500/80 dark:hover:bg-green-500">
+                                                <i className="fas fa-credit-card mr-1"></i> Pagar
                                             </button>
                                         )}
                                     </td>
@@ -228,7 +345,22 @@ const PaymentsPage: React.FC<PaymentsPageProps> = ({ user }) => {
                         </div>
                     )}
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredPayments.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
             </div>
+            
+            {selectedPayment && (
+                <PaymentModal 
+                    isOpen={isPaymentModalOpen}
+                    onClose={() => setIsPaymentModalOpen(false)}
+                    payment={selectedPayment}
+                    onPaymentSuccess={handlePaymentSuccess}
+                />
+            )}
         </div>
     );
 };

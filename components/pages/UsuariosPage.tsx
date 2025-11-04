@@ -1,23 +1,40 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Role } from '../../types';
 import { MOCK_USERS } from '../../constants';
 import UserFormModal from '../shared/UserFormModal';
+import Pagination from '../shared/Pagination';
+import { normalizeText } from '../../utils';
+
+const ITEMS_PER_PAGE = 10;
 
 const UsuariosPage: React.FC = () => {
     const [users, setUsers] = useState<User[]>(MOCK_USERS);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
+    const [statusFilter, setStatusFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm, roleFilter, statusFilter]);
 
     const filteredUsers = useMemo(() => {
+        const normalizedSearch = normalizeText(searchTerm);
         return users.filter(user => {
             const roleMatch = roleFilter === 'all' || user.role === roleFilter;
-            const searchTermMatch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                    user.email.toLowerCase().includes(searchTerm.toLowerCase());
-            return roleMatch && searchTermMatch;
+            const statusMatch = statusFilter === 'all' || (statusFilter === 'active' ? user.isActive : !user.isActive);
+            const searchTermMatch = normalizeText(user.name).includes(normalizedSearch) ||
+                                    normalizeText(user.email).includes(normalizedSearch);
+            return roleMatch && statusMatch && searchTermMatch;
         });
-    }, [users, searchTerm, roleFilter]);
+    }, [users, searchTerm, roleFilter, statusFilter]);
+    
+    const currentUsers = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredUsers.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredUsers, currentPage]);
 
     const handleAddNew = () => {
         setUserToEdit(null);
@@ -65,19 +82,26 @@ const UsuariosPage: React.FC = () => {
                                 placeholder="Buscar por nome ou email..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                                className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                             />
                         </div>
                          <div className="relative w-full sm:max-w-xs">
-                            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | 'all')} className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                            <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value as Role | 'all')} className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                                 <option value="all">Todos os Perfis</option>
                                 {roles.map(r => <option key={r} value={r}>{r}</option>)}
+                            </select>
+                        </div>
+                        <div className="relative w-full sm:max-w-xs">
+                            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                                <option value="all">Todos os Status</option>
+                                <option value="active">Ativo</option>
+                                <option value="inactive">Inativo</option>
                             </select>
                         </div>
                     </div>
                     <button
                         onClick={handleAddNew}
-                        className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                        className="w-full sm:w-auto px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0"
                     >
                         <i className="fa fa-plus mr-2"></i>Adicionar Usuário
                     </button>
@@ -95,7 +119,7 @@ const UsuariosPage: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map(user => (
+                            {currentUsers.map(user => (
                                 <tr key={user.id} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white flex items-center">
                                         <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full mr-3" />
@@ -126,6 +150,12 @@ const UsuariosPage: React.FC = () => {
                         </div>
                     )}
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredUsers.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
             </div>
             
             <UserFormModal

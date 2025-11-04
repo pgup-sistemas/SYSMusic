@@ -19,6 +19,10 @@ import ProfilePage from '../pages/ProfilePage';
 import SalasPage from '../pages/SalasPage';
 import GerenciarLandingPage from '../pages/GerenciarLandingPage';
 import TrialRequestsPage from '../pages/TrialRequestsPage';
+import MatriculasPage from '../pages/MatriculasPage';
+import FinanceiroDashboard from '../dashboards/FinanceiroDashboard';
+import ConfiguracoesPage from '../pages/ConfiguracoesPage';
+import FrequenciaPage from '../pages/FrequenciaPage';
 
 interface DashboardLayoutProps {
   user: User;
@@ -45,14 +49,22 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout, setCu
       case 'Minhas Aulas':
         return <AgendaPage user={user} />;
       case 'Financeiro':
+        if (user.role === Role.Admin || user.role === Role.Secretary) {
+            return <FinanceiroDashboard user={user} setActivePage={setActivePage} />;
+        }
+        return <PaymentsPage user={user} />;
       case 'Pagamentos':
         return <PaymentsPage user={user} />;
+      case 'Relatório Financeiro':
+         return <PaymentsPage user={user} />;
       case 'Usuários':
         return <UsuariosPage />;
       case 'Cursos':
         return <CursosPage />;
       case 'Meus Alunos':
         return <MeusAlunosPage user={user} />;
+      case 'Frequência':
+        return <FrequenciaPage user={user} />;
       case 'Disponibilidade':
         return <DisponibilidadePage user={user} />;
       case 'Materiais':
@@ -69,6 +81,10 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ user, onLogout, setCu
         return <GerenciarLandingPage />;
       case 'Solicitações':
         return <TrialRequestsPage />;
+      case 'Matrículas':
+        return <MatriculasPage setActivePage={setActivePage} />;
+      case 'Configurações':
+        return <ConfiguracoesPage />;
       default:
         return <div className="p-6 bg-white dark:bg-gray-800 rounded-xl shadow-lg text-gray-900 dark:text-white">
             <h2 className="text-2xl font-bold mb-4">{activePage}</h2>

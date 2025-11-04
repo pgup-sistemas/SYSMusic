@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { TrialLessonRequest } from '../../types';
 import * as trialRequestsApi from '../../api/trialRequests';
+import Pagination from '../shared/Pagination';
+
+const ITEMS_PER_PAGE = 10;
 
 const TrialRequestsPage: React.FC = () => {
     const [requests, setRequests] = useState<TrialLessonRequest[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [statusFilter, setStatusFilter] = useState<TrialLessonRequest['status'] | 'all'>('all');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const fetchRequests = async () => {
         setIsLoading(true);
@@ -18,6 +22,10 @@ const TrialRequestsPage: React.FC = () => {
         fetchRequests();
     }, []);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [statusFilter]);
+
     const handleStatusChange = async (requestId: number, newStatus: TrialLessonRequest['status']) => {
         await trialRequestsApi.updateRequestStatus(requestId, newStatus);
         fetchRequests();
@@ -27,6 +35,11 @@ const TrialRequestsPage: React.FC = () => {
         if (statusFilter === 'all') return requests;
         return requests.filter(r => r.status === statusFilter);
     }, [requests, statusFilter]);
+
+    const currentRequests = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredRequests.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredRequests, currentPage]);
     
     const statuses: TrialLessonRequest['status'][] = ['Pendente', 'Contatado', 'Agendado', 'Cancelado'];
 
@@ -54,7 +67,7 @@ const TrialRequestsPage: React.FC = () => {
                 <div className="mb-4 flex justify-start">
                      <div className="relative w-full sm:max-w-xs">
                         <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Filtrar por Status</label>
-                        <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="mt-1 block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <select id="status-filter" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as any)} className="mt-1 block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
                             <option value="all">Todos</option>
                             {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
@@ -73,7 +86,7 @@ const TrialRequestsPage: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredRequests.map(req => (
+                            {currentRequests.map(req => (
                                 <tr key={req.id} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{req.name}</td>
                                     <td className="px-6 py-4">
@@ -97,6 +110,12 @@ const TrialRequestsPage: React.FC = () => {
                         </div>
                     )}
                 </div>
+                <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredRequests.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
             </div>
         </div>
     );

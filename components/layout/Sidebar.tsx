@@ -20,13 +20,14 @@ const adminNav = [
   { name: 'Eventos', icon: 'fa-star' },
   { name: 'Certificados', icon: 'fa-award' },
   { name: 'Conteúdo Público', icon: 'fa-file-image' },
+  { name: 'Configurações', icon: 'fa-cog' },
 ];
 
 const secretaryNav = [
   { name: 'Dashboard', icon: 'fa-home' },
   { name: 'Matrículas', icon: 'fa-file-signature' },
   { name: 'Agenda', icon: 'fa-calendar-alt' },
-  { name: 'Pagamentos', icon: 'fa-cash-register' },
+  { name: 'Financeiro', icon: 'fa-cash-register' },
   { name: 'Solicitações', icon: 'fa-inbox' },
   { name: 'Eventos', icon: 'fa-star' },
   { name: 'Salas', icon: 'fa-door-open' },
@@ -37,6 +38,7 @@ const teacherNav = [
   { name: 'Dashboard', icon: 'fa-home' },
   { name: 'Minhas Aulas', icon: 'fa-calendar-check' },
   { name: 'Meus Alunos', icon: 'fa-users' },
+  { name: 'Frequência', icon: 'fa-user-check' },
   { name: 'Disponibilidade', icon: 'fa-clock' },
   { name: 'Materiais', icon: 'fa-file-alt' },
 ];

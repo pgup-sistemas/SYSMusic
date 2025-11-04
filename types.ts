@@ -43,11 +43,23 @@ export interface Payment {
   dueDate: Date;
   status: 'Pago' | 'Pendente' | 'Atrasado';
   courseName: string;
+  paymentMethod?: 'Cartão de Crédito' | 'Boleto' | 'Manual';
+  paidDate?: Date;
+}
+
+export interface Guardian {
+  name: string;
+  email: string;
+  phone: string;
+  relationship: string;
 }
 
 export interface StudentData extends User {
     enrollmentDate: string;
     activeCourses: number;
+    dateOfBirth?: Date;
+    address?: string;
+    guardian?: Guardian;
 }
 
 export interface AvailabilitySlot {
@@ -125,4 +137,15 @@ export interface TrialLessonRequest {
   phone?: string;
   requestDate: Date;
   status: 'Pendente' | 'Contatado' | 'Agendado' | 'Cancelado';
+}
+
+export type AttendanceStatus = 'Presente' | 'Ausente' | 'Atrasado';
+
+export interface AttendanceRecord {
+  id: number;
+  courseId: number;
+  studentId: number;
+  date: Date; // The specific date of the class
+  status: AttendanceStatus;
+  notes?: string;
 }

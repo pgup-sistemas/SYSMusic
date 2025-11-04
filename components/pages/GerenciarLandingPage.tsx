@@ -35,11 +35,11 @@ const AnnouncementFormModal: React.FC<AnnouncementFormModalProps> = ({ isOpen, o
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título</label>
-                    <input type="text" value={title} onChange={e => setTitle(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" value={title} onChange={e => setTitle(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Conteúdo</label>
-                    <textarea value={content} onChange={e => setContent(e.target.value)} required rows={5} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"></textarea>
+                    <textarea value={content} onChange={e => setContent(e.target.value)} required rows={5} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
                 </div>
                 <div className="flex justify-end pt-4">
                     <button type="button" onClick={onClose} disabled={isSaving} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Cancelar</button>
@@ -118,11 +118,11 @@ const GerenciarLandingPage: React.FC = () => {
                 <form onSubmit={handleHeroSave} className="space-y-4">
                      <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título Principal</label>
-                        <input type="text" value={content.heroTitle} onChange={e => setContent(c => c ? {...c, heroTitle: e.target.value} : null)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white" />
+                        <input type="text" value={content.heroTitle} onChange={e => setContent(c => c ? {...c, heroTitle: e.target.value} : null)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                      <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Subtítulo</label>
-                        <textarea value={content.heroSubtitle} onChange={e => setContent(c => c ? {...c, heroSubtitle: e.target.value} : null)} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
+                        <textarea value={content.heroSubtitle} onChange={e => setContent(c => c ? {...c, heroSubtitle: e.target.value} : null)} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"></textarea>
                     </div>
                     <div className="flex justify-end">
                          <button type="submit" disabled={isSaving} className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 disabled:opacity-50 flex items-center">

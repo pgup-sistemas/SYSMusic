@@ -4,6 +4,10 @@ import * as eventsApi from '../../api/events';
 import { MOCK_USERS } from '../../constants';
 import Modal from '../shared/Modal';
 import ManageParticipantsModal from '../shared/ManageParticipantsModal';
+import Pagination from '../shared/Pagination';
+import { normalizeText } from '../../utils';
+
+const ITEMS_PER_PAGE = 5;
 
 interface EventFormModalProps {
     isOpen: boolean;
@@ -55,29 +59,29 @@ const EventFormModal: React.FC<EventFormModalProps> = ({ isOpen, onClose, onSave
             <form onSubmit={handleSave} className="space-y-4">
                 <div>
                     <label htmlFor="name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Nome do Evento</label>
-                    <input type="text" id="name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" id="name" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="sm:col-span-1">
                         <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
-                        <input type="date" id="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="date" id="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                     <div>
                         <label htmlFor="startTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
-                        <input type="time" id="startTime" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="time" id="startTime" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                     <div>
                         <label htmlFor="endTime" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fim</label>
-                        <input type="time" id="endTime" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="time" id="endTime" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                 </div>
                 <div>
                     <label htmlFor="location" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Local</label>
-                    <input type="text" id="location" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" id="location" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div>
                     <label htmlFor="description" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Descrição</label>
-                    <textarea id="description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Detalhes sobre o evento, repertório, etc."></textarea>
+                    <textarea id="description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Detalhes sobre o evento, repertório, etc."></textarea>
                 </div>
                 <div className="flex justify-end pt-4">
                     <button type="button" onClick={onClose} disabled={isSaving} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 disabled:opacity-50">Cancelar</button>
@@ -99,6 +103,8 @@ const EventosPage: React.FC = () => {
     const [eventToEdit, setEventToEdit] = useState<Event | null>(null);
     const [isParticipantsModalOpen, setIsParticipantsModalOpen] = useState(false);
     const [selectedEventForParticipants, setSelectedEventForParticipants] = useState<Event | null>(null);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
 
     const fetchEvents = async () => {
         setIsLoading(true);
@@ -110,11 +116,21 @@ const EventosPage: React.FC = () => {
     useEffect(() => {
         fetchEvents();
     }, []);
+    
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchTerm]);
 
     const { upcomingEvents, pastEvents } = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        return events.reduce((acc, event) => {
+        const normalizedSearch = normalizeText(searchTerm);
+
+        const filtered = events.filter(event => 
+            normalizeText(event.name).includes(normalizedSearch)
+        );
+
+        return filtered.reduce((acc, event) => {
             if (event.date >= today && event.status === 'Agendado') {
                 acc.upcomingEvents.push(event);
             } else {
@@ -122,7 +138,12 @@ const EventosPage: React.FC = () => {
             }
             return acc;
         }, { upcomingEvents: [] as Event[], pastEvents: [] as Event[] });
-    }, [events]);
+    }, [events, searchTerm]);
+    
+    const currentPastEvents = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return pastEvents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [pastEvents, currentPage]);
 
     const handleSave = async (eventData: Omit<Event, 'id' | 'status' | 'participantIds'> | Event) => {
         setIsSaving(true);
@@ -174,7 +195,7 @@ const EventosPage: React.FC = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
         <div>
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gestão de Eventos</h1>
             <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">
@@ -183,13 +204,25 @@ const EventosPage: React.FC = () => {
         </div>
         <button
             onClick={() => { setEventToEdit(null); setIsFormModalOpen(true); }}
-            className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+            className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0"
         >
             <i className="fa fa-plus mr-2"></i>Agendar Novo Evento
         </button>
       </div>
 
        <div className="space-y-8">
+             <div className="relative w-full sm:max-w-md">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i className="fa fa-search text-gray-400"></i>
+                </div>
+                <input
+                    type="text"
+                    placeholder="Buscar evento por nome..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                />
+            </div>
             <div>
                 <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-4">Próximos Eventos</h2>
                 {upcomingEvents.length > 0 ? (
@@ -222,7 +255,7 @@ const EventosPage: React.FC = () => {
                     </div>
                 ) : (
                     <div className="text-center py-12 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
-                        <p className="text-gray-500 dark:text-gray-400">Nenhum evento agendado.</p>
+                        <p className="text-gray-500 dark:text-gray-400">Nenhum evento futuro encontrado.</p>
                     </div>
                 )}
             </div>
@@ -240,7 +273,7 @@ const EventosPage: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {pastEvents.map(event => (
+                            {currentPastEvents.map(event => (
                                 <tr key={event.id} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
                                     <td className="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">{event.name}</td>
                                     <td className="px-6 py-4">{event.date.toLocaleDateString('pt-BR')}</td>
@@ -254,7 +287,14 @@ const EventosPage: React.FC = () => {
                             ))}
                         </tbody>
                     </table>
+                     {pastEvents.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-8">Nenhum evento no histórico.</p>}
                 </div>
+                 <Pagination
+                    currentPage={currentPage}
+                    totalItems={pastEvents.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
             </div>
        </div>
 

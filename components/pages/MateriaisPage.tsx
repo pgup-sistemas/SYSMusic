@@ -1,9 +1,11 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Material, Course, Role } from '../../types';
 import { getCourseById, MOCK_COURSES } from '../../constants';
 import * as materialsApi from '../../api/materials';
 import Modal from '../shared/Modal';
+import Pagination from '../shared/Pagination';
+
+const ITEMS_PER_PAGE = 6;
 
 interface MaterialFormModalProps {
     isOpen: boolean;
@@ -69,11 +71,11 @@ const MaterialFormModal: React.FC<MaterialFormModalProps> = ({ isOpen, onClose, 
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="title" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Título do Material</label>
-                    <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" id="title" value={title} onChange={e => setTitle(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div>
                     <label htmlFor="course" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso Associado</label>
-                    <select id="course" value={courseId} onChange={e => setCourseId(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="course" value={courseId} onChange={e => setCourseId(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="" disabled>Selecione um curso</option>
                         {teacherCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                     </select>
@@ -115,6 +117,8 @@ const getFileIcon = (fileType: Material['fileType']) => {
     }
 }
 
+const fileTypes: Material['fileType'][] = ['pdf', 'audio', 'video', 'doc'];
+
 const TeacherView: React.FC<{ user: User }> = ({ user }) => {
     const [materials, setMaterials] = useState<Material[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -122,6 +126,15 @@ const TeacherView: React.FC<{ user: User }> = ({ user }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [materialToEdit, setMaterialToEdit] = useState<Material | null>(null);
     const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
+    const [courseFilter, setCourseFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+
+    const teacherCourses = useMemo(() => MOCK_COURSES.filter(c => c.teacherId === user.id), [user.id]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [showFavoritesOnly, courseFilter, typeFilter]);
 
     const fetchMaterials = async () => {
         setIsLoading(true);
@@ -135,8 +148,18 @@ const TeacherView: React.FC<{ user: User }> = ({ user }) => {
     }, [user.id]);
 
     const filteredMaterials = useMemo(() => {
-        return showFavoritesOnly ? materials.filter(m => m.isFavorite) : materials;
-    }, [materials, showFavoritesOnly]);
+        return materials.filter(m => {
+            const favoriteMatch = !showFavoritesOnly || m.isFavorite;
+            const courseMatch = courseFilter === 'all' || m.courseId === parseInt(courseFilter);
+            const typeMatch = typeFilter === 'all' || m.fileType === typeFilter;
+            return favoriteMatch && courseMatch && typeMatch;
+        });
+    }, [materials, showFavoritesOnly, courseFilter, typeFilter]);
+    
+    const currentMaterials = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredMaterials.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredMaterials, currentPage]);
 
     const handleSave = async (formData: FormData) => {
         setIsSaving(true);
@@ -185,18 +208,28 @@ const TeacherView: React.FC<{ user: User }> = ({ user }) => {
                 <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">Adicione e gerencie os materiais para seus cursos.</p>
             </div>
             
-            <div className="flex justify-between items-center">
-                <button
-                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                    className={`px-4 py-2 font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 ${
-                        showFavoritesOnly 
-                        ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
-                        : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
-                    }`}
-                >
-                    <i className={`fas fa-star mr-2 ${showFavoritesOnly ? '' : 'text-yellow-400'}`}></i>
-                    {showFavoritesOnly ? 'Mostrar Todos' : 'Mostrar Favoritos'}
-                </button>
+            <div className="flex flex-wrap gap-4 justify-between items-center">
+                <div className="flex flex-wrap gap-4">
+                    <select value={courseFilter} onChange={e => setCourseFilter(e.target.value)} className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="all">Todos os Cursos</option>
+                        {teacherCourses.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="all">Todos os Tipos</option>
+                        {fileTypes.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                    </select>
+                     <button
+                        onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                        className={`px-4 py-2 font-semibold rounded-lg shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 ${
+                            showFavoritesOnly 
+                            ? 'bg-yellow-500 text-white hover:bg-yellow-600' 
+                            : 'bg-white text-gray-700 hover:bg-gray-100 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600'
+                        }`}
+                    >
+                        <i className={`fas fa-star mr-2 ${showFavoritesOnly ? '' : 'text-yellow-400'}`}></i>
+                        {showFavoritesOnly ? 'Mostrar Todos' : 'Favoritos'}
+                    </button>
+                </div>
                  <button
                     onClick={() => { setMaterialToEdit(null); setIsModalOpen(true); }}
                     className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
@@ -210,38 +243,46 @@ const TeacherView: React.FC<{ user: User }> = ({ user }) => {
                     {showFavoritesOnly ? 'Materiais Favoritos' : 'Seus Materiais'}
                 </h3>
                 {filteredMaterials.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredMaterials.map(material => {
-                            const course = getCourseById(material.courseId);
-                            const iconInfo = getFileIcon(material.fileType);
-                            return (
-                                <div key={material.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col justify-between shadow-sm">
-                                    <div>
-                                        <div className="flex items-start justify-between">
-                                            <i className={`fas ${iconInfo.icon} ${iconInfo.color} text-3xl`}></i>
-                                            <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{backgroundColor: course?.color, color: '#fff'}}>{course?.name || 'Curso'}</span>
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {currentMaterials.map(material => {
+                                const course = getCourseById(material.courseId);
+                                const iconInfo = getFileIcon(material.fileType);
+                                return (
+                                    <div key={material.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col justify-between shadow-sm">
+                                        <div>
+                                            <div className="flex items-start justify-between">
+                                                <i className={`fas ${iconInfo.icon} ${iconInfo.color} text-3xl`}></i>
+                                                <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{backgroundColor: course?.color, color: '#fff'}}>{course?.name || 'Curso'}</span>
+                                            </div>
+                                            <div className="flex items-center mt-3 gap-2">
+                                                <h4 className="font-bold text-gray-800 dark:text-white">{material.title}</h4>
+                                                <button onClick={() => handleToggleFavorite(material.id)} className={`text-gray-400 hover:text-yellow-500 ${material.isFavorite ? 'text-yellow-400' : ''}`} title="Favoritar">
+                                                    <i className={`${material.isFavorite ? 'fas' : 'far'} fa-star`}></i>
+                                                </button>
+                                            </div>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{material.fileName}</p>
+                                            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enviado em: {material.uploadDate.toLocaleDateString('pt-BR')}</p>
                                         </div>
-                                        <div className="flex items-center mt-3 gap-2">
-                                            <h4 className="font-bold text-gray-800 dark:text-white">{material.title}</h4>
-                                            <button onClick={() => handleToggleFavorite(material.id)} className={`text-gray-400 hover:text-yellow-500 ${material.isFavorite ? 'text-yellow-400' : ''}`} title="Favoritar">
-                                                <i className={`${material.isFavorite ? 'fas' : 'far'} fa-star`}></i>
-                                            </button>
+                                        <div className="flex items-center justify-end space-x-3 mt-4">
+                                            <button onClick={() => handleEdit(material)} className="text-gray-400 hover:text-indigo-500" title="Editar"><i className="fas fa-pencil-alt"></i></button>
+                                            <button onClick={() => handleDelete(material.id)} className="text-gray-400 hover:text-red-500" title="Excluir"><i className="fas fa-trash"></i></button>
                                         </div>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{material.fileName}</p>
-                                        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Enviado em: {material.uploadDate.toLocaleDateString('pt-BR')}</p>
                                     </div>
-                                    <div className="flex items-center justify-end space-x-3 mt-4">
-                                        <button onClick={() => handleEdit(material)} className="text-gray-400 hover:text-indigo-500" title="Editar"><i className="fas fa-pencil-alt"></i></button>
-                                        <button onClick={() => handleDelete(material.id)} className="text-gray-400 hover:text-red-500" title="Excluir"><i className="fas fa-trash"></i></button>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                         <Pagination
+                            currentPage={currentPage}
+                            totalItems={filteredMaterials.length}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    </>
                 ) : (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <i className={`fas ${showFavoritesOnly ? 'fa-star' : 'fa-folder-open'} text-4xl mb-3`}></i>
-                        <p>{showFavoritesOnly ? 'Você ainda não marcou nenhum material como favorito.' : 'Você ainda não adicionou nenhum material.'}</p>
+                        <p>{showFavoritesOnly ? 'Você ainda não marcou nenhum material como favorito.' : 'Nenhum material encontrado com os filtros selecionados.'}</p>
                     </div>
                 )}
             </div>
@@ -259,10 +300,11 @@ const TeacherView: React.FC<{ user: User }> = ({ user }) => {
 }
 
 const StudentView: React.FC<{ user: User }> = ({ user }) => {
-    // This is a simplified view. In a real app, you'd get the student's courses first.
-    // For now, we'll show all materials as an example.
     const [materials, setMaterials] = useState<Material[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [courseFilter, setCourseFilter] = useState('all');
+    const [typeFilter, setTypeFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
 
      const fetchMaterials = async () => {
         setIsLoading(true);
@@ -276,6 +318,23 @@ const StudentView: React.FC<{ user: User }> = ({ user }) => {
         fetchMaterials();
     }, []);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [courseFilter, typeFilter]);
+
+    const filteredMaterials = useMemo(() => {
+        return materials.filter(m => {
+            const courseMatch = courseFilter === 'all' || m.courseId === parseInt(courseFilter);
+            const typeMatch = typeFilter === 'all' || m.fileType === typeFilter;
+            return courseMatch && typeMatch;
+        });
+    }, [materials, courseFilter, typeFilter]);
+
+    const currentMaterials = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredMaterials.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredMaterials, currentPage]);
+
     if (isLoading) {
         return <div className="flex justify-center items-center h-full"><i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i></div>
     }
@@ -287,34 +346,53 @@ const StudentView: React.FC<{ user: User }> = ({ user }) => {
                 <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">Acesse os materiais disponibilizados pelos seus professores.</p>
             </div>
              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                {materials.length > 0 ? (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {materials.map(material => {
-                            const course = getCourseById(material.courseId);
-                            const iconInfo = getFileIcon(material.fileType);
-                            return (
-                                <div key={material.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col justify-between shadow-sm">
-                                    <div>
-                                        <div className="flex items-start justify-between">
-                                            <i className={`fas ${iconInfo.icon} ${iconInfo.color} text-3xl`}></i>
-                                            <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{backgroundColor: course?.color, color: '#fff'}}>{course?.name || 'Curso'}</span>
+                <div className="flex flex-wrap gap-4 mb-6">
+                    <select value={courseFilter} onChange={e => setCourseFilter(e.target.value)} className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="all">Todos os Cursos</option>
+                        {MOCK_COURSES.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                    </select>
+                    <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} className="block w-full sm:w-auto pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="all">Todos os Tipos</option>
+                        {fileTypes.map(t => <option key={t} value={t}>{t.toUpperCase()}</option>)}
+                    </select>
+                </div>
+
+                {filteredMaterials.length > 0 ? (
+                    <>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                            {currentMaterials.map(material => {
+                                const course = getCourseById(material.courseId);
+                                const iconInfo = getFileIcon(material.fileType);
+                                return (
+                                    <div key={material.id} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 flex flex-col justify-between shadow-sm">
+                                        <div>
+                                            <div className="flex items-start justify-between">
+                                                <i className={`fas ${iconInfo.icon} ${iconInfo.color} text-3xl`}></i>
+                                                <span className="text-xs font-semibold px-2 py-1 rounded-full" style={{backgroundColor: course?.color, color: '#fff'}}>{course?.name || 'Curso'}</span>
+                                            </div>
+                                            <h4 className="font-bold text-gray-800 dark:text-white mt-3">{material.title}</h4>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{material.fileName}</p>
                                         </div>
-                                        <h4 className="font-bold text-gray-800 dark:text-white mt-3">{material.title}</h4>
-                                        <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{material.fileName}</p>
+                                        <div className="text-right mt-4">
+                                            <a href={material.fileUrl} download={material.fileName} className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700">
+                                                <i className="fas fa-download mr-2"></i>Baixar
+                                            </a>
+                                        </div>
                                     </div>
-                                    <div className="text-right mt-4">
-                                        <a href={material.fileUrl} download={material.fileName} className="px-3 py-1.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg shadow-md hover:bg-indigo-700">
-                                            <i className="fas fa-download mr-2"></i>Baixar
-                                        </a>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
+                                );
+                            })}
+                        </div>
+                        <Pagination
+                            currentPage={currentPage}
+                            totalItems={filteredMaterials.length}
+                            itemsPerPage={ITEMS_PER_PAGE}
+                            onPageChange={setCurrentPage}
+                        />
+                    </>
                 ) : (
                     <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                         <i className="fas fa-folder-open text-4xl mb-3"></i>
-                        <p>Nenhum material disponível no momento.</p>
+                        <p>Nenhum material disponível com os filtros selecionados.</p>
                     </div>
                 )}
             </div>

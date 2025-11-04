@@ -1,13 +1,16 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { User, Role, Certificate } from '../../types';
 import { MOCK_CERTIFICATES, MOCK_USERS } from '../../constants';
 import Modal from '../shared/Modal';
+import Pagination from '../shared/Pagination';
 
 interface CertificateFormModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (certificate: Omit<Certificate, 'id' | 'validationCode'>) => void;
 }
+
+const ITEMS_PER_PAGE = 10;
 
 const CertificateFormModal: React.FC<CertificateFormModalProps> = ({ isOpen, onClose, onSave }) => {
     const [studentId, setStudentId] = useState('');
@@ -25,7 +28,7 @@ const CertificateFormModal: React.FC<CertificateFormModalProps> = ({ isOpen, onC
             studentId: parseInt(studentId),
             eventName,
             courseName,
-            issueDate: new Date(issueDate),
+            issueDate: new Date(new Date(issueDate).getTime() + new Date().getTimezoneOffset() * 60000), // Adjust for timezone
         });
         
         // Reset form
@@ -41,22 +44,22 @@ const CertificateFormModal: React.FC<CertificateFormModalProps> = ({ isOpen, onC
             <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                     <label htmlFor="student" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Aluno</label>
-                    <select id="student" value={studentId} onChange={e => setStudentId(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="student" value={studentId} onChange={e => setStudentId(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="" disabled>Selecione um aluno</option>
                         {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                 </div>
                  <div>
                     <label htmlFor="eventName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Evento/Motivo</label>
-                    <input type="text" id="eventName" value={eventName} onChange={e => setEventName(e.target.value)} required placeholder="Ex: Recital de Fim de Ano 2024" className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" id="eventName" value={eventName} onChange={e => setEventName(e.target.value)} required placeholder="Ex: Recital de Fim de Ano 2024" className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                  <div>
                     <label htmlFor="courseName" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-                    <input type="text" id="courseName" value={courseName} onChange={e => setCourseName(e.target.value)} required placeholder="Ex: Conclusão de Violão Básico" className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="text" id="courseName" value={courseName} onChange={e => setCourseName(e.target.value)} required placeholder="Ex: Conclusão de Violão Básico" className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div>
                     <label htmlFor="issueDate" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data de Emissão</label>
-                    <input type="date" id="issueDate" value={issueDate} onChange={e => setIssueDate(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="date" id="issueDate" value={issueDate} onChange={e => setIssueDate(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div className="flex justify-end pt-4">
                     <button type="button" onClick={onClose} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500">Cancelar</button>
@@ -70,6 +73,35 @@ const CertificateFormModal: React.FC<CertificateFormModalProps> = ({ isOpen, onC
 const AdminView: React.FC = () => {
     const [certificates, setCertificates] = useState<Certificate[]>(MOCK_CERTIFICATES);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [studentFilter, setStudentFilter] = useState('all');
+    const [dateFilter, setDateFilter] = useState({ start: '', end: '' });
+    const [currentPage, setCurrentPage] = useState(1);
+    
+    const students = useMemo(() => MOCK_USERS.filter(u => u.role === Role.Student), []);
+    
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [studentFilter, dateFilter]);
+
+    const filteredCertificates = useMemo(() => {
+        return certificates.filter(cert => {
+            const studentMatch = studentFilter === 'all' || cert.studentId === parseInt(studentFilter);
+            const startDate = dateFilter.start ? new Date(new Date(dateFilter.start).getTime() + new Date().getTimezoneOffset() * 60000) : null;
+            const endDate = dateFilter.end ? new Date(new Date(dateFilter.end).getTime() + new Date().getTimezoneOffset() * 60000) : null;
+            
+            if (startDate) startDate.setHours(0, 0, 0, 0);
+            if (endDate) endDate.setHours(23, 59, 59, 999);
+    
+            const dateMatch = (!startDate || cert.issueDate >= startDate) && (!endDate || cert.issueDate <= endDate);
+    
+            return studentMatch && dateMatch;
+        });
+    }, [certificates, studentFilter, dateFilter]);
+
+    const currentCertificates = useMemo(() => {
+        const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+        return filteredCertificates.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+    }, [filteredCertificates, currentPage]);
 
     const handleSaveCertificate = (data: Omit<Certificate, 'id' | 'validationCode'>) => {
         const newCertificate: Certificate = {
@@ -77,7 +109,8 @@ const AdminView: React.FC = () => {
             validationCode: `${Math.random().toString(36).substr(2, 3).toUpperCase()}-${Date.now().toString().slice(-3)}`,
             ...data,
         };
-        setCertificates(prev => [...prev, newCertificate]);
+        const updatedCerts = [...certificates, newCertificate].sort((a,b) => b.issueDate.getTime() - a.issueDate.getTime());
+        setCertificates(updatedCerts);
         MOCK_CERTIFICATES.push(newCertificate);
     };
 
@@ -89,20 +122,38 @@ const AdminView: React.FC = () => {
 
     return (
         <div className="space-y-8">
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Gerenciar Certificados</h1>
                     <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">Emita e administre os certificados dos alunos.</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
-                    className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                    className="px-4 py-2 bg-indigo-600 text-white font-semibold rounded-lg shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 flex-shrink-0"
                 >
                     <i className="fa fa-plus mr-2"></i>Gerar Certificado
                 </button>
             </div>
 
              <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                <div className="mb-4 flex flex-wrap gap-4 items-end p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                     <div className="flex-grow min-w-[150px]">
+                        <label htmlFor="student-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Aluno</label>
+                        <select id="student-filter" value={studentFilter} onChange={e => setStudentFilter(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <option value="all">Todos os Alunos</option>
+                            {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                        </select>
+                    </div>
+                     <div className="flex-grow min-w-[120px]">
+                        <label htmlFor="date-start-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Emitido de:</label>
+                        <input type="date" id="date-start-filter" value={dateFilter.start} onChange={e => setDateFilter(prev => ({...prev, start: e.target.value}))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    </div>
+                     <div className="flex-grow min-w-[120px]">
+                        <label htmlFor="date-end-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Até:</label>
+                        <input type="date" id="date-end-filter" value={dateFilter.end} onChange={e => setDateFilter(prev => ({...prev, end: e.target.value}))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
+                    </div>
+                </div>
+
                  <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-gray-500 dark:text-gray-400">
                         <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
@@ -115,7 +166,7 @@ const AdminView: React.FC = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {certificates.map(cert => {
+                            {currentCertificates.map(cert => {
                                 const student = MOCK_USERS.find(u => u.id === cert.studentId);
                                 return (
                                 <tr key={cert.id} className="bg-white dark:bg-gray-800 border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
@@ -132,7 +183,14 @@ const AdminView: React.FC = () => {
                             })}
                         </tbody>
                     </table>
+                     {filteredCertificates.length === 0 && <p className="text-center text-gray-500 dark:text-gray-400 py-8">Nenhum certificado encontrado com os filtros selecionados.</p>}
                 </div>
+                 <Pagination
+                    currentPage={currentPage}
+                    totalItems={filteredCertificates.length}
+                    itemsPerPage={ITEMS_PER_PAGE}
+                    onPageChange={setCurrentPage}
+                />
             </div>
 
             <CertificateFormModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveCertificate} />
@@ -141,18 +199,36 @@ const AdminView: React.FC = () => {
 }
 
 const StudentView: React.FC<{ user: User }> = ({ user }) => {
+    const [yearFilter, setYearFilter] = useState('all');
     const myCertificates = useMemo(() => MOCK_CERTIFICATES.filter(c => c.studentId === user.id), [user.id]);
+    
+    // FIX: Explicitly type `a` and `b` as numbers to help TypeScript's type inference.
+    const years = useMemo(() => [...new Set(myCertificates.map(c => c.issueDate.getFullYear()))].sort((a: number, b: number) => b - a), [myCertificates]);
+    
+    const filteredCertificates = useMemo(() => {
+        if (yearFilter === 'all') return myCertificates;
+        return myCertificates.filter(cert => cert.issueDate.getFullYear() === parseInt(yearFilter));
+    }, [myCertificates, yearFilter]);
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Meus Certificados</h1>
-                <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">Aqui estão todos os certificados que você conquistou.</p>
+            <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Meus Certificados</h1>
+                    <p className="mt-1 text-lg text-gray-600 dark:text-gray-300">Aqui estão todos os certificados que você conquistou.</p>
+                </div>
+                <div className="relative w-full sm:w-auto sm:max-w-xs">
+                    <label htmlFor="year-filter" className="sr-only">Filtrar por ano</label>
+                    <select id="year-filter" value={yearFilter} onChange={e => setYearFilter(e.target.value)} className="block w-full pl-3 pr-10 py-2 border border-gray-300 dark:border-gray-600 rounded-md leading-5 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="all">Todos os Anos</option>
+                        {years.map(year => <option key={year} value={year}>{year}</option>)}
+                    </select>
+                </div>
             </div>
 
-            {myCertificates.length > 0 ? (
+            {filteredCertificates.length > 0 ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {myCertificates.map(cert => (
+                    {filteredCertificates.map(cert => (
                         <div key={cert.id} className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 flex flex-col justify-between hover:shadow-2xl transition-shadow duration-300">
                             <div>
                                 <div className="flex justify-between items-start">
@@ -177,7 +253,7 @@ const StudentView: React.FC<{ user: User }> = ({ user }) => {
                 <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
                     <i className="fas fa-award text-5xl text-gray-300 dark:text-gray-600 mb-4"></i>
                     <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300">Nenhum certificado encontrado</h3>
-                    <p className="text-gray-500 dark:text-gray-400">Continue se dedicando e logo você terá certificados para exibir aqui!</p>
+                    <p className="text-gray-500 dark:text-gray-400">{yearFilter === 'all' ? 'Você ainda não possui certificados.' : `Nenhum certificado emitido em ${yearFilter}.`}</p>
                 </div>
             )}
         </div>

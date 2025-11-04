@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User, Notification } from '../../types';
 import * as notificationsApi from '../../api/notifications';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface HeaderProps {
   user: User;
@@ -14,6 +15,7 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, onMenuClick, pageTitle,
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const notificationsRef = useRef<HTMLDivElement>(null);
+  const { theme, toggleTheme } = useTheme();
 
   const fetchNotifications = async () => {
     const userNotifications = await notificationsApi.getNotifications(user.id);
@@ -79,6 +81,20 @@ const Header: React.FC<HeaderProps> = ({ user, onLogout, onMenuClick, pageTitle,
                 />
                 </div>
             </form>
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              type="button"
+              className="bg-white dark:bg-gray-800 p-1 rounded-full text-gray-400 dark:text-gray-300 hover:text-gray-500 dark:hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-10 h-10 flex items-center justify-center"
+              aria-label="Toggle theme"
+            >
+              {theme === 'light' ? (
+                <i className="fas fa-moon h-5 w-5"></i>
+              ) : (
+                <i className="fas fa-sun h-5 w-5"></i>
+              )}
+            </button>
             
             {/* Notifications Dropdown */}
             <div className="relative" ref={notificationsRef}>

@@ -119,54 +119,54 @@ const LessonFormModal: React.FC<LessonFormModalProps> = ({ isOpen, onClose, onSa
             <form onSubmit={handleSave} className="space-y-4">
                  <div>
                     <label htmlFor="course" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Curso</label>
-                    <select id="course" value={formData.courseId} onChange={e => setFormData({...formData, courseId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="course" value={formData.courseId} onChange={e => setFormData({...formData, courseId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="" disabled>Selecione um curso</option>
                         {MOCK_COURSES.map(course => <option key={course.id} value={course.id}>{course.name}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="student" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Aluno</label>
-                    <select id="student" value={formData.studentId} onChange={e => setFormData({...formData, studentId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="student" value={formData.studentId} onChange={e => setFormData({...formData, studentId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="" disabled>Selecione um aluno</option>
                         {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="studentEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email do Aluno (Opcional)</label>
-                    <input type="email" id="studentEmail" value={formData.studentEmail} onChange={handleEmailChange} onBlur={handleEmailBlur} className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${emailError ? 'border-red-500' : 'border-gray-300'}`} placeholder="aluno@exemplo.com" />
+                    <input type="email" id="studentEmail" value={formData.studentEmail} onChange={handleEmailChange} onBlur={handleEmailBlur} className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white ${emailError ? 'border-red-500' : 'border-gray-300'}`} placeholder="aluno@exemplo.com" />
                     {emailError && <p className="mt-1 text-sm text-red-600 dark:text-red-400">{emailError}</p>}
                 </div>
                 <div>
                     <label htmlFor="teacher" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Professor</label>
-                    <select id="teacher" value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="teacher" value={formData.teacherId} onChange={e => setFormData({...formData, teacherId: e.target.value})} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="" disabled>Selecione um professor</option>
                         {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                 </div>
                 <div>
                     <label htmlFor="room" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Sala</label>
-                    <input type="text" id="room" list="rooms-datalist" value={formData.room} onChange={(e) => setFormData({...formData, room: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" required placeholder="Selecione ou digite uma sala" />
+                    <input type="text" id="room" list="rooms-datalist" value={formData.room} onChange={(e) => setFormData({...formData, room: e.target.value})} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" required placeholder="Selecione ou digite uma sala" />
                     <datalist id="rooms-datalist">{availableRooms.map(r => <option key={r.id} value={r.name} />)}</datalist>
                     <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">Selecione da lista ou digite um nome de sala customizado.</p>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div>
                         <label htmlFor="date" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Data</label>
-                        <input type="date" id="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="date" id="date" value={formData.date} onChange={e => setFormData({...formData, date: e.target.value})} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                     <div>
                         <label htmlFor="start-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Início</label>
-                        <input type="time" id="start-time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
+                        <input type="time" id="start-time" value={formData.startTime} onChange={e => setFormData({...formData, startTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
                     </div>
                     <div>
                         <label htmlFor="end-time" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Fim</label>
-                        <input type="time" id="end-time" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
+                        <input type="time" id="end-time" value={formData.endTime} onChange={e => setFormData({...formData, endTime: e.target.value})} required className={`mt-1 block w-full pl-3 pr-2 py-2 text-base border focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white ${timeError ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`} />
                     </div>
                 </div>
                 {timeError && <p className="text-sm text-red-600 dark:text-red-400 -mt-2">{timeError}</p>}
                 <div>
                     <label htmlFor="notes" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Observações</label>
-                    <textarea id="notes" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="Notas sobre o plano de aula, progresso do aluno, etc."></textarea>
+                    <textarea id="notes" value={formData.notes} onChange={e => setFormData({...formData, notes: e.target.value})} rows={3} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Notas sobre o plano de aula, progresso do aluno, etc."></textarea>
                 </div>
                 <div className="flex justify-end pt-4">
                     <button type="button" onClick={onClose} disabled={isSaving} className="mr-2 px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 dark:hover:bg-gray-500 disabled:opacity-50">Cancelar</button>
@@ -350,32 +350,32 @@ const AgendaPage: React.FC<{ user: User }> = ({ user }) => {
             <div className="mb-4 flex flex-wrap gap-4 items-center p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <div className="flex-1 min-w-[150px]">
                     <label htmlFor="teacher-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Professor</label>
-                    <select id="teacher-filter" value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="teacher-filter" value={selectedTeacher} onChange={e => setSelectedTeacher(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="all">Todos</option>
                         {teachers.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
                     </select>
                 </div>
                 <div className="flex-1 min-w-[150px]">
                     <label htmlFor="student-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Aluno</label>
-                    <select id="student-filter" value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="student-filter" value={selectedStudent} onChange={e => setSelectedStudent(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="all">Todos</option>
                         {students.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                     </select>
                 </div>
                 <div className="flex-1 min-w-[150px]">
                     <label htmlFor="status-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
-                    <select id="status-filter" value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                    <select id="status-filter" value={selectedStatus} onChange={e => setSelectedStatus(e.target.value)} className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                         <option value="all">Todos</option>
                         {statuses.map(s => <option key={s} value={s}>{s}</option>)}
                     </select>
                 </div>
                 <div className="flex-1 min-w-[120px]">
                     <label htmlFor="time-start-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Horário (Início)</label>
-                    <input type="time" id="time-start-filter" value={timeFilter.start} onChange={e => setTimeFilter(prev => ({ ...prev, start: e.target.value }))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="time" id="time-start-filter" value={timeFilter.start} onChange={e => setTimeFilter(prev => ({ ...prev, start: e.target.value }))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
                 <div className="flex-1 min-w-[120px]">
                     <label htmlFor="time-end-filter" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Horário (Fim)</label>
-                    <input type="time" id="time-end-filter" value={timeFilter.end} onChange={e => setTimeFilter(prev => ({ ...prev, end: e.target.value }))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                    <input type="time" id="time-end-filter" value={timeFilter.end} onChange={e => setTimeFilter(prev => ({ ...prev, end: e.target.value }))} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                 </div>
             </div>
             

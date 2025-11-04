@@ -38,7 +38,7 @@ const RoomFormModal: React.FC<RoomFormModalProps> = ({ isOpen, onClose, onSave, 
                         value={name}
                         onChange={e => setName(e.target.value)}
                         required
-                        className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                        className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white"
                         placeholder="Ex: Estúdio de Gravação"
                     />
                 </div>

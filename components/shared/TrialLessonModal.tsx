@@ -49,19 +49,19 @@ const TrialLessonModal: React.FC<TrialLessonModalProps> = ({ isOpen, onClose }) 
                     </p>
                     <div>
                         <label htmlFor="trial-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu Nome</label>
-                        <input type="text" id="trial-name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="text" id="trial-name" value={name} onChange={e => setName(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                      <div>
                         <label htmlFor="trial-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Seu E-mail</label>
-                        <input type="email" id="trial-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" />
+                        <input type="email" id="trial-email" value={email} onChange={e => setEmail(e.target.value)} required className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" />
                     </div>
                     <div>
                         <label htmlFor="trial-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Telefone / WhatsApp (Opcional)</label>
-                        <input type="tel" id="trial-phone" value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white" placeholder="(XX) XXXXX-XXXX" />
+                        <input type="tel" id="trial-phone" value={phone} onChange={e => setPhone(e.target.value)} className="mt-1 block w-full pl-3 pr-2 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="(XX) XXXXX-XXXX" />
                     </div>
                      <div>
                         <label htmlFor="trial-instrument" className="block text-sm font-medium text-gray-700 dark:text-gray-300">Instrumento de Interesse</label>
-                         <select id="trial-instrument" value={instrument} onChange={e => setInstrument(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-white">
+                         <select id="trial-instrument" value={instrument} onChange={e => setInstrument(e.target.value)} required className="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white">
                             <option value="" disabled>Selecione um instrumento</option>
                             {instruments.map(i => <option key={i} value={i}>{i}</option>)}
                              <option value="Outro">Outro</option>

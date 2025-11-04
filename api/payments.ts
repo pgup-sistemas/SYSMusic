@@ -11,22 +11,46 @@ export const getPayments = (): Promise<Payment[]> => {
             resolve(JSON.parse(JSON.stringify(MOCK_PAYMENTS)).map((p: any) => ({
                 ...p,
                 dueDate: new Date(p.dueDate),
+                paidDate: p.paidDate ? new Date(p.paidDate) : undefined,
             })));
         }, LATENCY);
     });
 };
 
-export const updatePaymentStatus = (paymentId: number, status: Payment['status']): Promise<Payment> => {
+export const updatePaymentStatus = (paymentId: number, status: Payment['status'], method: Payment['paymentMethod'] = 'Manual'): Promise<Payment> => {
     return new Promise((resolve, reject) => {
         setTimeout(() => {
             const index = MOCK_PAYMENTS.findIndex(p => p.id === paymentId);
             if (index !== -1) {
                 MOCK_PAYMENTS[index].status = status;
+                if(status === 'Pago') {
+                    MOCK_PAYMENTS[index].paymentMethod = method;
+                    MOCK_PAYMENTS[index].paidDate = new Date();
+                }
                 resolve(MOCK_PAYMENTS[index]);
             } else {
                 reject(new Error('Payment not found'));
             }
         }, LATENCY);
+    });
+};
+
+export const processPayment = (paymentId: number): Promise<Payment> => {
+    return new Promise((resolve, reject) => {
+        setTimeout(() => {
+            const index = MOCK_PAYMENTS.findIndex(p => p.id === paymentId);
+            if (index !== -1) {
+                if (MOCK_PAYMENTS[index].status === 'Pago') {
+                    return reject(new Error('This payment has already been paid.'));
+                }
+                MOCK_PAYMENTS[index].status = 'Pago';
+                MOCK_PAYMENTS[index].paymentMethod = 'Cartão de Crédito';
+                MOCK_PAYMENTS[index].paidDate = new Date();
+                resolve(MOCK_PAYMENTS[index]);
+            } else {
+                reject(new Error('Payment not found'));
+            }
+        }, 1500); // Simulate gateway processing time
     });
 };
 
