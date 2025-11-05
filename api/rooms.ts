@@ -1,54 +1,31 @@
 import { Room } from '../types';
-import { MOCK_ROOMS } from '../constants';
+import { API_URL, getHeaders, apiFetch } from './index';
 
-// Simulate network latency
-const LATENCY = 300;
-
-export const getRooms = (): Promise<Room[]> => {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            resolve([...MOCK_ROOMS]);
-        }, LATENCY);
+export const getRooms = async (): Promise<Room[]> => {
+    return apiFetch(`${API_URL}/rooms`, {
+        headers: getHeaders(),
     });
 };
 
-export const addRoom = (name: string): Promise<Room> => {
-    return new Promise(resolve => {
-        setTimeout(() => {
-            const newRoom: Room = {
-                id: Date.now(),
-                name,
-            };
-            MOCK_ROOMS.push(newRoom);
-            resolve(newRoom);
-        }, LATENCY);
+export const addRoom = async (name: string): Promise<Room> => {
+    return apiFetch(`${API_URL}/rooms`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ name }),
     });
 };
 
-export const updateRoom = (updatedRoom: Room): Promise<Room> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const index = MOCK_ROOMS.findIndex(r => r.id === updatedRoom.id);
-            if (index !== -1) {
-                MOCK_ROOMS[index] = updatedRoom;
-                resolve(updatedRoom);
-            } else {
-                reject(new Error('Room not found'));
-            }
-        }, LATENCY);
+export const updateRoom = async (updatedRoom: Room): Promise<Room> => {
+    return apiFetch(`${API_URL}/rooms/${updatedRoom.id}`, {
+        method: 'PUT',
+        headers: getHeaders(),
+        body: JSON.stringify(updatedRoom),
     });
 };
 
-export const deleteRoom = (roomId: number): Promise<void> => {
-    return new Promise((resolve, reject) => {
-        setTimeout(() => {
-            const index = MOCK_ROOMS.findIndex(r => r.id === roomId);
-            if (index !== -1) {
-                MOCK_ROOMS.splice(index, 1);
-                resolve();
-            } else {
-                reject(new Error('Room not found'));
-            }
-        }, LATENCY);
+export const deleteRoom = async (roomId: number): Promise<void> => {
+    await apiFetch(`${API_URL}/rooms/${roomId}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
     });
 };

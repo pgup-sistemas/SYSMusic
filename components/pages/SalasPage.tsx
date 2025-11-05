@@ -62,10 +62,15 @@ const SalasPage: React.FC = () => {
     const [roomToEdit, setRoomToEdit] = useState<Room | null>(null);
 
     const fetchRooms = async () => {
-        setIsLoading(true);
-        const fetchedRooms = await roomsApi.getRooms();
-        setRooms(fetchedRooms);
-        setIsLoading(false);
+        try {
+            setIsLoading(true);
+            const fetchedRooms = await roomsApi.getRooms();
+            setRooms(fetchedRooms);
+        } catch (error) {
+            alert((error as Error).message);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     useEffect(() => {
@@ -73,22 +78,31 @@ const SalasPage: React.FC = () => {
     }, []);
 
     const handleSave = async (name: string) => {
-        setIsSaving(true);
-        if (roomToEdit) {
-            await roomsApi.updateRoom({ ...roomToEdit, name });
-        } else {
-            await roomsApi.addRoom(name);
+        try {
+            setIsSaving(true);
+            if (roomToEdit) {
+                await roomsApi.updateRoom({ ...roomToEdit, name });
+            } else {
+                await roomsApi.addRoom(name);
+            }
+            setIsModalOpen(false);
+            setRoomToEdit(null);
+            await fetchRooms();
+        } catch (error) {
+            alert((error as Error).message);
+        } finally {
+            setIsSaving(false);
         }
-        setIsSaving(false);
-        setIsModalOpen(false);
-        setRoomToEdit(null);
-        fetchRooms();
     };
 
     const handleDelete = async (roomId: number) => {
         if (window.confirm("Tem certeza que deseja excluir esta sala?")) {
-            await roomsApi.deleteRoom(roomId);
-            fetchRooms();
+            try {
+                await roomsApi.deleteRoom(roomId);
+                await fetchRooms();
+            } catch (error) {
+                alert((error as Error).message);
+            }
         }
     };
 

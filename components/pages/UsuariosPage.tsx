@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { User, Role } from '../../types';
-import { MOCK_USERS } from '../../constants';
+import * as usersApi from '../../api/users';
 import UserFormModal from '../shared/UserFormModal';
 import Pagination from '../shared/Pagination';
 import { normalizeText } from '../../utils';
@@ -8,13 +8,30 @@ import { normalizeText } from '../../utils';
 const ITEMS_PER_PAGE = 10;
 
 const UsuariosPage: React.FC = () => {
-    const [users, setUsers] = useState<User[]>(MOCK_USERS);
+    const [users, setUsers] = useState<User[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [roleFilter, setRoleFilter] = useState<Role | 'all'>('all');
     const [statusFilter, setStatusFilter] = useState('all');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [userToEdit, setUserToEdit] = useState<User | null>(null);
     const [currentPage, setCurrentPage] = useState(1);
+
+    const fetchUsers = async () => {
+        try {
+            setIsLoading(true);
+            const fetchedUsers = await usersApi.getUsers();
+            setUsers(fetchedUsers);
+        } catch (error) {
+            alert((error as Error).message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchUsers();
+    }, []);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -46,22 +63,43 @@ const UsuariosPage: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleToggleActive = (userId: number) => {
-        setUsers(prev =>
-            prev.map(u => u.id === userId ? { ...u, isActive: !u.isActive } : u)
-        );
+    const handleToggleActive = async (userId: number) => {
+        const user = users.find(u => u.id === userId);
+        if (!user) return;
+
+        try {
+            await usersApi.toggleUserStatus(userId, !user.isActive);
+            await fetchUsers();
+        } catch (error) {
+            alert((error as Error).message);
+        }
     };
 
-    const handleSaveUser = (userData: User) => {
-        if (userToEdit) {
-            setUsers(prev => prev.map(u => u.id === userData.id ? userData : u));
-        } else {
-            setUsers(prev => [...prev, userData]);
+    const handleSaveUser = async (userData: User) => {
+        try {
+            if (userToEdit) {
+                await usersApi.updateUser(userData);
+            } else {
+                const { name, email, role, password } = userData;
+                if (!password) {
+                    alert('A senha é obrigatória para novos usuários.');
+                    return;
+                }
+                await usersApi.addUser({ name, email, role, password });
+            }
+            setIsModalOpen(false);
+            setUserToEdit(null);
+            await fetchUsers();
+        } catch (error) {
+            alert((error as Error).message);
         }
-        setIsModalOpen(false);
     };
     
     const roles = Object.values(Role);
+    
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-full"><i className="fas fa-spinner fa-spin text-4xl text-indigo-500"></i></div>
+    }
 
     return (
         <div className="space-y-8">

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
-import { MOCK_USERS } from '../../constants';
+import * as authApi from '../../api/auth';
 import ForgotPasswordModal from '../shared/ForgotPasswordModal';
 
 interface LoginPageProps {
@@ -13,21 +13,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onGoToPublic }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setIsLoggingIn(true);
 
-    const user = MOCK_USERS.find(u => u.email.toLowerCase() === email.toLowerCase());
-
-    if (user && user.password === password) {
-      if (!user.isActive) {
-        setError('Sua conta está desativada. Entre em contato com a administração.');
-        return;
-      }
+    try {
+      const user = await authApi.login(email, password);
       onLogin(user);
-    } else {
-      setError('E-mail ou senha inválidos.');
+    } catch (error) {
+      setError((error as Error).message || 'E-mail ou senha inválidos.');
+    } finally {
+        setIsLoggingIn(false);
     }
   };
 
@@ -83,9 +82,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onGoToPublic }) => {
             <div>
               <button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                disabled={isLoggingIn}
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                Entrar
+                {isLoggingIn ? <i className="fas fa-spinner fa-spin"></i> : 'Entrar'}
               </button>
             </div>
           </form>
